@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zzm.crm.workbench.mapper.ActivityMapper">
+    <resultMap id="BaseResultMap" type="com.zzm.crm.workbench.pojo.Activity">
+        <id column="id" jdbcType="CHAR" property="id"/>
+        <result column="owner" jdbcType="CHAR" property="owner"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="start_date" jdbcType="CHAR" property="startDate"/>
+        <result column="end_date" jdbcType="CHAR" property="endDate"/>
+        <result column="cost" jdbcType="VARCHAR" property="cost"/>
+        <result column="description" jdbcType="VARCHAR" property="description"/>
+        <result column="create_time" jdbcType="CHAR" property="createTime"/>
+        <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+        <result column="edit_time" jdbcType="CHAR" property="editTime"/>
+        <result column="edit_by" jdbcType="VARCHAR" property="editBy"/>
+    </resultMap>
+
+    <!-- 批量删除市场活动 -->
+    <delete id="deleteActivityByIds">
+        delete from tbl_activity where id in
+        <foreach collection="array" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- 插入市场活动 -->
+    <insert id="insertActivity" parameterType="com.zzm.crm.workbench.pojo.Activity">
+        insert into tbl_activity (id, owner, name, start_date,
+                                  end_date, cost, description,
+                                  create_time, create_by)
+        values (#{id,jdbcType=CHAR}, #{owner,jdbcType=CHAR}, #{name,jdbcType=VARCHAR}, #{startDate,jdbcType=CHAR},
+                #{endDate,jdbcType=CHAR}, #{cost,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR},
+                #{createTime,jdbcType=CHAR}, #{createBy,jdbcType=VARCHAR})
+    </insert>
+
+    <!-- 批量导入市场活动列表 -->
+    <insert id="insertActivityByFile">
+        insert into tbl_activity(
+        id,
+        owner,
+        name,
+        start_date,
+        end_date,
+        cost,
+        description,
+        create_time,
+        create_by
+        )
+        values
+        <foreach collection="list" item="obj" separator=",">
+            (#{obj.id}, #{obj.owner}, #{obj.name}, #{obj.startDate},#{obj.endDate},
+            #{obj.cost}, #{obj.description},#{obj.createTime}, #{obj.createBy})
+        </foreach>
+    </insert>
+
+    <!-- 更新市场活动 -->
+    <update id="updateActivity" parameterType="com.zzm.crm.workbench.pojo.Activity">
+        update tbl_activity
+        set owner       = #{owner,jdbcType=CHAR},
+            name        = #{name,jdbcType=VARCHAR},
+            start_date  = #{startDate,jdbcType=CHAR},
+            end_date    = #{endDate,jdbcType=CHAR},
+            cost        = #{cost,jdbcType=VARCHAR},
+            description = #{description,jdbcType=VARCHAR},
+            edit_time   = #{editTime,jdbcType=CHAR},
+            edit_by     = #{editBy,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=CHAR}
+    </update>
+
+    <!-- 根据ID查询市场活动信息 -->
+    <select id="selectActivityById" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select id, owner, name, start_date, end_date, cost, description
+        from tbl_activity
+        where id = #{id,jdbcType=CHAR}
+    </select>
+
+    <!-- 查询符合条件的市场活动分页信息 -->
+    <select id="selectActivityByConditionForPage" resultMap="BaseResultMap">
+        select act.id,act.cost,act.name,us.name as owner,act.start_date, act.end_date
+        from tbl_activity act
+        join tbl_user us on act.owner=us.id
+        <where>
+            <if test="name!=null and name!=''">
+                and act.name like "%"#{name}"%"
+            </if>
+            <if test="owner!=null and owner!=''">
+                and us.id = #{owner}
+            </if>
+            <if test="start_date!=null and start_date!=''">
+                and act.start_date >= #{start_date}
+            </if>
+            <if test="end_date!=null and end_date!=''">
+                and act.end_date &lt;=#{end_date}
+            </if>
+        </where>
+        order by act.start_date desc
+        limit #{beginIndex},#{pageSize}
+    </select>
+
+    <!-- 查询符合条件的市场活动分页信息的条数 -->
+    <select id="selectCountOfActivityForPage" resultType="int">
+        select count(*)
+        from tbl_activity act
+        join tbl_user us on act.owner=us.id
+        <where>
+            <if test="name!=null and name!=''">
+                and act.name like "%"#{name}"%"
+            </if>
+            <if test="owner!=null and owner!=''">
+                and us.id = #{owner}
+            </if>
+            <if test="start_date!=null and start_date!=''">
+                and act.start_date >= #{start_date}
+            </if>
+            <if test="end_date!=null and end_date!=''">
+                and act.end_date &lt;=#{end_date}
+            </if>
+        </where>
+    </select>
+
+    <!-- 查询市场活动(导出市场活动) -->
+    <select id="selectActivityForExport" resultMap="BaseResultMap">
+        select
+        acty.id,
+        us.name as owner,
+        acty.name,
+        acty.start_date,
+        acty.end_date,
+        acty.cost,
+        acty.description,
+        acty.create_time,
+        us1.name as create_by,
+        acty.edit_time,
+        us2.name as edit_by
+        from tbl_activity acty
+        join tbl_user us on acty.owner = us.id
+        join tbl_user us1 on acty.create_by = us1.id
+        left join tbl_user us2 on acty.edit_by = us2.id
+        <if test="array!=null and array!=''">
+            <where>
+                acty.id in
+                <foreach collection="array" item="id" separator="," open="(" close=")">
+                    #{id}
+                </foreach>
+            </where>
+        </if>
+        order by acty.start_date desc
+    </select>
+
+    <!-- 根据线索的ID查询关联的市场活动 -->
+    <select id="selectActivityByClueId" resultMap="BaseResultMap">
+        select acty.id,
+               us.name  as owner,
+               acty.name,
+               acty.start_date,
+               acty.end_date,
+               acty.cost,
+               acty.description,
+               acty.create_time,
+               us1.name as create_by,
+               acty.edit_time,
+               us2.name as edit_by
+        from tbl_activity acty
+                 join tbl_user us on acty.owner = us.id
+                 join tbl_user us1 on acty.create_by = us1.id
+                 left join tbl_user us2 on acty.edit_by = us2.id
+                 join tbl_clue_activity_relation car on acty.id = car.activity_id
+        where car.clue_id = #{id}
+    </select>
+
+    <!-- 根据参数查询未关联的市场活动 -->
+    <select id="selectActivityForFuzzy" resultMap="BaseResultMap">
+        select acty.id, us.name as owner, acty.name, acty.start_date, acty.end_date
+        from tbl_activity acty
+                 join tbl_user us on acty.owner = us.id
+        where acty.name like "%"#{value}"%" and acty.id not in
+        (select activity_id from tbl_clue_activity_relation where clue_id=#{clueId})
+        order by acty.start_date asc
+    </select>
+
+    <!-- 根据参数查询关联的市场活动 -->
+    <select id="selectActivityFuzzyForConvert" resultMap="BaseResultMap">
+        select acty.id, us.name as owner, acty.name, acty.start_date, acty.end_date
+        from tbl_activity acty
+                 join tbl_user us on acty.owner = us.id
+        where acty.name like "%"#{value}"%" and acty.id in
+        (select activity_id from tbl_clue_activity_relation where clue_id=#{clueId})
+        order by acty.start_date asc
+    </select>
+
+    <!-- 根据联系人ID和参数搜索已经关联但是未创建交易的市场活动 -->
+    <select id="selectModifyActivityFuzzyForSave" resultMap="BaseResultMap" parameterType="string">
+        select acty.id, us.name as owner, acty.name, acty.start_date, acty.end_date
+        from tbl_activity acty
+        join tbl_user us on acty.owner = us.id
+        join tbl_contacts_activity_relation as car on car.activity_id = acty.id
+        <where>
+            <if test="value!=null and value!=''">
+                acty.name like "%"#{value}"%"
+            </if>
+            <if test="contactsId!=null and contactsId!=''">
+                and car.contacts_id = #{contactsId}
+                and acty.id not in (select activity_id from tbl_tran where contacts_id = #{contactsId})
+            </if>
+        </where>
+        order by acty.start_date asc
+    </select>
+
+    <!-- 根据联系人的ID查询市场活动的关联信息 -->
+    <select id="selectAllActivityInfoByContactsId" resultType="com.zzm.crm.workbench.pojo.Activity">
+        select acty.id,
+               acty.name,
+               acty.cost,
+               acty.start_date as startDate,
+               acty.end_date   as endDate,
+               user.name       as owner
+        from tbl_activity acty
+                 join tbl_user as user
+        on user.id = acty.owner
+            join tbl_contacts_activity_relation car on car.activity_id = acty.id
+        where car.contacts_id = #{contactsId}
+        order by acty.start_date asc
+    </select>
+
+    <!-- 根据联系人的ID查询未关联的市场活动信息 -->
+    <select id="selectAllNoRelationActivityInfoByContactsId" resultMap="BaseResultMap">
+        select acty.id, us.name as owner, acty.name, acty.start_date, acty.end_date
+        from tbl_activity acty
+                 join tbl_user us on acty.owner = us.id
+        where acty.name like "%"#{value}"%" and acty.id not in
+        (select activity_id from tbl_contacts_activity_relation where contacts_id=#{contactsId})
+        order by acty.start_date asc
+    </select>
+</mapper>

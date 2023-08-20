@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zzm.crm.settings.mapper.DicValueMapper">
+
+    <resultMap id="BaseResultMap" type="com.zzm.crm.settings.pojo.DicValue">
+        <id column="id" jdbcType="CHAR" property="id"/>
+        <result column="value" jdbcType="VARCHAR" property="value"/>
+        <result column="text" jdbcType="VARCHAR" property="text"/>
+        <result column="order_no" jdbcType="VARCHAR" property="orderNo"/>
+        <result column="type_code" jdbcType="VARCHAR" property="typeCode"/>
+    </resultMap>
+
+    <!-- 根据数据类型的字典类型查询数据字典值的列表 -->
+    <select id="selectDicValueGroupByDicType" resultMap="BaseResultMap">
+        select id, value, text, order_no
+        from tbl_dic_value
+        where type_code = #{dicTypeCode}
+        order by order_no asc
+    </select>
+</mapper>

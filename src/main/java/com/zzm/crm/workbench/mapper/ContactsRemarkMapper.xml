@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zzm.crm.workbench.mapper.ContactsRemarkMapper">
+    <resultMap id="BaseResultMap" type="com.zzm.crm.workbench.pojo.ContactsRemark">
+        <id column="id" jdbcType="CHAR" property="id"/>
+        <result column="note_content" jdbcType="VARCHAR" property="noteContent"/>
+        <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+        <result column="create_time" jdbcType="CHAR" property="createTime"/>
+        <result column="edit_by" jdbcType="VARCHAR" property="editBy"/>
+        <result column="edit_time" jdbcType="CHAR" property="editTime"/>
+        <result column="edit_flag" jdbcType="CHAR" property="editFlag"/>
+        <result column="contacts_id" jdbcType="CHAR" property="contactsId"/>
+    </resultMap>
+
+    <!-- 删除联系人备注 -->
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+        delete
+        from tbl_contacts_remark
+        where id = #{id,jdbcType=CHAR}
+    </delete>
+
+    <!-- 根据联系人ID删除备注信息 -->
+    <delete id="deleteByContactsId">
+        delete
+        from tbl_contacts_remark
+        where contacts_id = #{id,jdbcType=CHAR}
+    </delete>
+
+    <!-- 插入数据到联系人备注表 -->
+    <insert id="insertOriginData" parameterType="com.zzm.crm.workbench.pojo.ContactsRemark">
+        insert into tbl_contacts_remark (id, note_content, create_by,
+        create_time, edit_by, edit_time,
+        edit_flag, contacts_id)
+        values
+        <foreach collection="list" item="obj" separator=",">
+            (#{obj.id,jdbcType=CHAR}, #{obj.noteContent,jdbcType=VARCHAR}, #{obj.createBy,jdbcType=VARCHAR},
+            #{obj.createTime,jdbcType=CHAR}, #{obj.editBy,jdbcType=VARCHAR}, #{obj.editTime,jdbcType=CHAR},
+            #{obj.editFlag,jdbcType=CHAR}, #{obj.contactsId,jdbcType=CHAR})
+        </foreach>
+    </insert>
+
+    <!-- 保存联系人备注信息 -->
+    <insert id="saveContactsRemark">
+        insert into tbl_contacts_remark (id, note_content, create_time,
+                                     create_by, edit_flag, contacts_id)
+        values (#{id,jdbcType=CHAR}, #{noteContent,jdbcType=VARCHAR}, #{createTime,jdbcType=CHAR},
+                #{createBy,jdbcType=VARCHAR}, #{editFlag,jdbcType=CHAR}, #{contactsId,jdbcType=CHAR})
+    </insert>
+
+    <!-- 根据ID修改备注信息 -->
+    <update id="updateById">
+        update tbl_contacts_remark
+        set note_content = #{noteContent,jdbcType=VARCHAR},
+            edit_time    = #{editTime,jdbcType=CHAR},
+            edit_by      = #{editBy,jdbcType=VARCHAR},
+            edit_flag    = #{editFlag,jdbcType=CHAR}
+        where id = #{id,jdbcType=CHAR}
+    </update>
+
+    <!-- 根据联系人ID查看备注信息 -->
+    <select id="queryDetailByContactsId" resultType="com.zzm.crm.workbench.pojo.ContactsRemark">
+        select cre.id,
+               cre.note_content as noteContent,
+               cre.create_time as createTime,
+               u1.name as createBy,
+               cre.edit_time as editTime,
+               u2.name as editBy,
+               cre.edit_flag as editFlag
+        from tbl_contacts_remark cre
+                 join tbl_user u1 on u1.id= cre.create_by
+                 left join tbl_user u2 on u2.id= cre.edit_by
+        where cre.contacts_id = #{id,jdbcType=CHAR}
+        order by cre.create_time asc, cre.edit_time asc
+    </select>
+</mapper>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zzm.crm.workbench.mapper.ActivityRemarkMapper">
+
+    <!-- 基本BaseResultMap -->
+    <resultMap id="BaseResultMap" type="com.zzm.crm.workbench.pojo.ActivityRemark">
+        <id column="id" jdbcType="CHAR" property="id"/>
+        <result column="note_content" jdbcType="VARCHAR" property="noteContent"/>
+        <result column="create_time" jdbcType="CHAR" property="createTime"/>
+        <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+        <result column="edit_time" jdbcType="CHAR" property="editTime"/>
+        <result column="edit_by" jdbcType="VARCHAR" property="editBy"/>
+        <result column="edit_flag" jdbcType="CHAR" property="editFlag"/>
+        <result column="activity_id" jdbcType="CHAR" property="activityId"/>
+    </resultMap>
+
+    <!-- 删除市场活动的备注 -->
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+        delete
+        from tbl_activity_remark
+        where id = #{id,jdbcType=CHAR}
+    </delete>
+
+    <!-- 根据市场活动ID删除市场活动备注信息 -->
+    <delete id="deleteByActivityId">
+        delete
+        from tbl_activity_remark
+        where activity_id = #{id,jdbcType=CHAR}
+    </delete>
+
+    <!-- 保存市场活动备注信息 -->
+    <insert id="insertActivityRemark" parameterType="com.zzm.crm.workbench.pojo.ActivityRemark">
+        insert into tbl_activity_remark (id, note_content, create_time,
+                                         create_by, edit_flag, activity_id)
+        values (#{id,jdbcType=CHAR}, #{noteContent,jdbcType=VARCHAR}, #{createTime,jdbcType=CHAR},
+                #{createBy,jdbcType=VARCHAR}, #{editFlag,jdbcType=CHAR}, #{activityId,jdbcType=CHAR})
+    </insert>
+
+    <!-- 更新市场活动备注信息 -->
+    <update id="updateByPrimaryKey" parameterType="com.zzm.crm.workbench.pojo.ActivityRemark">
+        update tbl_activity_remark
+        set note_content = #{noteContent,jdbcType=VARCHAR},
+            edit_time    = #{editTime,jdbcType=CHAR},
+            edit_by      = #{editBy,jdbcType=VARCHAR},
+            edit_flag    = #{editFlag,jdbcType=CHAR}
+        where id = #{id,jdbcType=CHAR}
+    </update>
+
+    <!-- 根据市场活动的ID来查询市场活动的备注信息 -->
+    <select id="selectDetailByActivityId" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select are.id,
+               are.note_content,
+               are.create_time,
+               u1.name as create_by,
+               are.edit_time,
+               u2.name as edit_by,
+               are.edit_flag
+        from tbl_activity_remark are
+        join tbl_user u1 on u1.id= are.create_by
+        left join tbl_user u2 on u2.id= are.edit_by
+        where are.activity_id = #{id,jdbcType=CHAR}
+        order by are.create_time asc, are.edit_time asc
+    </select>
+
+    <!-- 查询所有的市场活动备注信息 -->
+    <select id="selectAll" resultMap="BaseResultMap">
+        select id,
+               note_content,
+               create_time,
+               create_by,
+               edit_time,
+               edit_by,
+               edit_flag,
+               activity_id
+        from tbl_activity_remark
+    </select>
+</mapper>

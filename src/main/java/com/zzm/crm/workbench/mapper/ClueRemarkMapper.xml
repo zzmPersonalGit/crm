@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zzm.crm.workbench.mapper.ClueRemarkMapper">
+    <resultMap id="BaseResultMap" type="com.zzm.crm.workbench.pojo.ClueRemark">
+        <id column="id" jdbcType="CHAR" property="id"/>
+        <result column="note_content" jdbcType="VARCHAR" property="noteContent"/>
+        <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+        <result column="create_time" jdbcType="CHAR" property="createTime"/>
+        <result column="edit_by" jdbcType="VARCHAR" property="editBy"/>
+        <result column="edit_time" jdbcType="CHAR" property="editTime"/>
+        <result column="edit_flag" jdbcType="CHAR" property="editFlag"/>
+        <result column="clue_id" jdbcType="CHAR" property="clueId"/>
+    </resultMap>
+
+    <!-- 删除线索的备注信息 -->
+    <delete id="deleteDataByClueId" parameterType="java.lang.String">
+        delete
+        from tbl_clue_remark
+        where clue_id = #{id,jdbcType=CHAR}
+    </delete>
+
+    <!-- 删除线索信息 -->
+    <delete id="deleteByPrimaryKey">
+        delete
+        from tbl_clue_remark
+        where id = #{id,jdbcType=CHAR}
+    </delete>
+
+    <!-- 根据线索ID删除备注信息 -->
+    <delete id="deleteByClueId">
+        delete
+        from tbl_clue_remark
+        where clue_id = #{id,jdbcType=CHAR}
+    </delete>
+
+    <!-- 保存线索的备注 -->
+    <insert id="insertClueRemark">
+        insert into tbl_clue_remark (id, note_content, create_time,
+                                     create_by, edit_flag, clue_id)
+        values (#{id,jdbcType=CHAR}, #{noteContent,jdbcType=VARCHAR}, #{createTime,jdbcType=CHAR},
+                #{createBy,jdbcType=VARCHAR}, #{editFlag,jdbcType=CHAR}, #{clueId,jdbcType=CHAR})
+    </insert>
+
+    <!-- 编辑线索备注 -->
+    <update id="updateByPrimaryKey" parameterType="com.zzm.crm.workbench.pojo.ClueRemark">
+        update tbl_clue_remark
+        set note_content = #{noteContent,jdbcType=VARCHAR},
+            edit_by      = #{editBy,jdbcType=VARCHAR},
+            edit_time    = #{editTime,jdbcType=CHAR},
+            edit_flag    = #{editFlag,jdbcType=CHAR},
+            clue_id      = #{clueId,jdbcType=CHAR}
+        where id = #{id,jdbcType=CHAR}
+    </update>
+
+    <!-- 根据线索ID查询线索的备注信息 -->
+    <select id="selectClueForOriginByClueId" resultMap="BaseResultMap" parameterType="string">
+        select id,
+               note_content,
+               create_by,
+               create_time,
+               edit_by,
+               edit_time,
+               edit_flag,
+               clue_id
+        from tbl_clue_remark
+        where clue_id = #{id}
+    </select>
+
+    <!-- 查询线索的备注列表 -->
+    <select id="selectClueRemarkByClueId" resultMap="BaseResultMap">
+        select cr.id,
+               cr.note_content,
+               u.name  as create_by,
+               u1.name as edit_by,
+               cr.create_time,
+               cr.edit_time,
+               cr.edit_flag,
+               cr.clue_id
+        from tbl_clue_remark cr
+                 join tbl_user u on u.id = cr.create_by
+                 left join tbl_user u1 on u1.id = cr.edit_by
+        where cr.clue_id = #{id}
+        order by cr.create_time asc, cr.edit_time asc
+    </select>
+</mapper>

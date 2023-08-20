@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zzm.crm.workbench.mapper.ContactsMapper">
+    <resultMap id="BaseResultMap" type="com.zzm.crm.workbench.pojo.Contacts">
+        <id column="id" jdbcType="CHAR" property="id"/>
+        <result column="owner" jdbcType="CHAR" property="owner"/>
+        <result column="source" jdbcType="VARCHAR" property="source"/>
+        <result column="customer_id" jdbcType="CHAR" property="customerId"/>
+        <result column="fullname" jdbcType="VARCHAR" property="fullname"/>
+        <result column="appellation" jdbcType="VARCHAR" property="appellation"/>
+        <result column="email" jdbcType="VARCHAR" property="email"/>
+        <result column="mphone" jdbcType="VARCHAR" property="mphone"/>
+        <result column="job" jdbcType="VARCHAR" property="job"/>
+        <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+        <result column="create_time" jdbcType="CHAR" property="createTime"/>
+        <result column="edit_by" jdbcType="VARCHAR" property="editBy"/>
+        <result column="edit_time" jdbcType="CHAR" property="editTime"/>
+        <result column="description" jdbcType="VARCHAR" property="description"/>
+        <result column="contact_summary" jdbcType="VARCHAR" property="contactSummary"/>
+        <result column="next_contact_time" jdbcType="CHAR" property="nextContactTime"/>
+        <result column="address" jdbcType="VARCHAR" property="address"/>
+    </resultMap>
+
+    <!-- 根据ID删除联系人 -->
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+        delete
+        from tbl_contacts
+        where id = #{id,jdbcType=CHAR}
+    </delete>
+
+    <!-- 批量删除联系人信息 -->
+    <delete id="deleteContactsByIds">
+        delete from tbl_contacts where id in
+        <foreach collection="array" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- 插入联系人 -->
+    <insert id="insertForOrigin" parameterType="com.zzm.crm.workbench.pojo.Contacts">
+        insert into tbl_contacts (id, owner, source,
+                                  customer_id, fullname, appellation, email, mphone, job,
+                                  create_by, create_time, description, contact_summary,
+                                  next_contact_time, address)
+        values (#{id,jdbcType=CHAR}, #{owner,jdbcType=CHAR}, #{source,jdbcType=VARCHAR},
+                #{customerId,jdbcType=CHAR}, #{fullname,jdbcType=VARCHAR}, #{appellation,jdbcType=VARCHAR},
+                #{email,jdbcType=VARCHAR}, #{mphone,jdbcType=VARCHAR}, #{job,jdbcType=VARCHAR},
+                #{createBy,jdbcType=VARCHAR}, #{createTime,jdbcType=CHAR},
+                #{description,jdbcType=VARCHAR}, #{contactSummary,jdbcType=VARCHAR},
+                #{nextContactTime,jdbcType=CHAR}, #{address,jdbcType=VARCHAR})
+    </insert>
+
+    <!-- 更新联系人信息 -->
+    <update id="updateByPrimaryKey" parameterType="com.zzm.crm.workbench.pojo.Contacts">
+        update tbl_contacts
+        set owner             = #{owner,jdbcType=CHAR},
+            source            = #{source,jdbcType=VARCHAR},
+            customer_id       = #{customerId,jdbcType=CHAR},
+            fullname          = #{fullname,jdbcType=VARCHAR},
+            appellation       = #{appellation,jdbcType=VARCHAR},
+            email             = #{email,jdbcType=VARCHAR},
+            mphone            = #{mphone,jdbcType=VARCHAR},
+            job               = #{job,jdbcType=VARCHAR},
+            edit_by           = #{editBy,jdbcType=VARCHAR},
+            edit_time         = #{editTime,jdbcType=CHAR},
+            description       = #{description,jdbcType=VARCHAR},
+            contact_summary   = #{contactSummary,jdbcType=VARCHAR},
+            next_contact_time = #{nextContactTime,jdbcType=CHAR},
+            address           = #{address,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=CHAR}
+    </update>
+
+    <!-- 根据ID查询联系人信息 -->
+    <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select id,
+               owner,
+               source,
+               customer_id,
+               fullname,
+               appellation,
+               email,
+               mphone,
+               job,
+               create_by,
+               create_time,
+               edit_by,
+               edit_time,
+               description,
+               contact_summary,
+               next_contact_time,
+               address
+        from tbl_contacts
+        where id = #{id,jdbcType=CHAR}
+    </select>
+
+    <!-- 根据条件分页查询符合条件的总记录数 -->
+    <select id="selectCountOfClueForPage" resultType="java.lang.Integer">
+        select count(*)
+        from tbl_contacts cts
+        join tbl_user user on user.id = cts.owner
+        join tbl_customer cer on cts.customer_id = cer.id
+        join tbl_dic_value dicValue on dicValue.id = cts.source
+        join tbl_dic_value dicValue1 on dicValue1.id = cts.appellation
+        <where>
+            <if test="owner!=null and owner!=''">
+                user.id = #{owner}
+            </if>
+            <if test="fullname!=null and fullname!=''">
+                and cts.fullname like "%"#{fullname}"%"
+            </if>
+            <if test="source!=null and source!=''">
+                and dicValue.id = #{source}
+            </if>
+            <if test="customerId!=null and customerId!=''">
+                and cer.id = #{customerId}
+            </if>
+        </where>
+    </select>
+
+    <!-- 根据条件分页查询符合条件 -->
+    <select id="selectContactsByConditionForPage" resultType="com.zzm.crm.workbench.pojo.Contacts">
+        select
+        cts.id,
+        cts.fullname,
+        cts.mphone,
+        cts.next_contact_time as nextContactTime,
+        cer.name as customerId,
+        user.name as owner,
+        dicValue.value as source,
+        dicValue1.value as appellation
+        from tbl_contacts cts
+        join tbl_user user on user.id = cts.owner
+        join tbl_customer cer on cts.customer_id = cer.id
+        join tbl_dic_value dicValue on dicValue.id = cts.source
+        join tbl_dic_value dicValue1 on dicValue1.id = cts.appellation
+        <where>
+            <if test="owner!=null and owner!=''">
+                user.id = #{owner}
+            </if>
+            <if test="fullname!=null and fullname!=''">
+                and cts.fullname like "%"#{fullname}"%"
+            </if>
+            <if test="source!=null and source!=''">
+                and dicValue.id = #{source}
+            </if>
+            <if test="customerId!=null and customerId!=''">
+                and cer.id = #{customerId}
+            </if>
+        </where>
+        order by cts.next_contact_time asc
+        limit #{beginIndex},#{pageSize}
+    </select>
+
+    <!-- 根据ID查询联系人信息 -->
+    <select id="selectById" resultType="com.zzm.crm.workbench.pojo.Contacts">
+        select cts.id,
+               cts.owner,
+               cts.source,
+               cts.fullname,
+               cts.mphone,
+               cts.appellation,
+               cts.job,
+               cts.mphone,
+               cts.email,
+               cts.customer_id       as customerId,
+               cts.description,
+               cts.contact_summary   as contactSummary,
+               cts.next_contact_time as nextContactTime,
+               cts.address
+        from tbl_contacts cts
+
+        where cts.id = #{id}
+    </select>
+
+    <!-- 根据联系人ID查询联系人信息 -->
+    <select id="queryContactById" resultType="com.zzm.crm.workbench.pojo.Contacts">
+        select cts.id,
+               user.name             as owner,
+               dicValue.value        as source,
+               cer.name              as customerId,
+               cts.fullname,
+               cts.email,
+               cts.mphone,
+               cts.job,
+               user1.name            as createBy,
+               cts.create_time       as createTime,
+               user2.name            as editBy,
+               cts.edit_time         as editTime,
+               cts.description,
+               cts.contact_summary   as contactSummary,
+               cts.next_contact_time as nextContactTime,
+               cts.address
+        from tbl_contacts cts
+                 join tbl_user as user
+        on user.id = cts.owner
+            join tbl_user as user1 on user1.id = cts.create_by
+            left join tbl_user as user2 on user2.id = cts.edit_by
+            join tbl_dic_value dicValue on dicValue.id = cts.source
+            join tbl_customer as cer on cer.id = cts.customer_id
+        where cts.id=#{id}
+    </select>
+
+    <!-- 查询所有联系人 -->
+    <select id="queryAll" resultType="com.zzm.crm.workbench.pojo.Contacts">
+        select id, fullname
+        from tbl_contacts
+    </select>
+
+    <!-- 根据客户ID查询联系人信息 -->
+    <select id="getContactsInfoByCustomerId" resultType="com.zzm.crm.workbench.pojo.Contacts">
+        select id, fullname, job, email, mphone, next_contact_time as nextContactTime
+        from tbl_contacts
+        where customer_id = #{customerId}
+    </select>
+
+    <!-- 根据客户ID查询联系人ID列表 -->
+    <select id="getContactsIdListByCustomerId" resultType="java.lang.String">
+        select id
+        from tbl_contacts
+        where customer_id = #{customerId}
+    </select>
+</mapper>

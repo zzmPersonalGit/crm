@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zzm.crm.settings.mapper.UserMapper">
+
+    <resultMap id="BaseResultMap" type="com.zzm.crm.settings.pojo.User">
+        <id column="id" jdbcType="CHAR" property="id"/>
+        <result column="login_act" jdbcType="VARCHAR" property="loginAct"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="login_pwd" jdbcType="VARCHAR" property="loginPwd"/>
+        <result column="email" jdbcType="VARCHAR" property="email"/>
+        <result column="expire_time" jdbcType="CHAR" property="expireTime"/>
+        <result column="lock_state" jdbcType="CHAR" property="lockState"/>
+        <result column="deptno" jdbcType="CHAR" property="deptno"/>
+        <result column="allow_ips" jdbcType="VARCHAR" property="allowIps"/>
+        <result column="createTime" jdbcType="CHAR" property="createtime"/>
+        <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+        <result column="edit_time" jdbcType="CHAR" property="editTime"/>
+        <result column="edit_by" jdbcType="VARCHAR" property="editBy"/>
+    </resultMap>
+
+    <!-- 添加新用户 -->
+    <insert id="insert" parameterType="com.zzm.crm.settings.pojo.User">
+        insert into tbl_user (id, login_act, name,
+                              login_pwd, email, expire_time,
+                              lock_state, deptno, allow_ips,
+                              createTime, create_by, edit_time,
+                              edit_by)
+        values (#{id,jdbcType=CHAR}, #{loginAct,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},
+                #{loginPwd,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}, #{expireTime,jdbcType=CHAR},
+                #{lockState,jdbcType=CHAR}, #{deptno,jdbcType=CHAR}, #{allowIps,jdbcType=VARCHAR},
+                #{createtime,jdbcType=CHAR}, #{createBy,jdbcType=VARCHAR}, #{editTime,jdbcType=CHAR},
+                #{editBy,jdbcType=VARCHAR})
+    </insert>
+
+    <!-- 更新密码 -->
+    <update id="updatePwdByUserId">
+        update tbl_user
+        set login_pwd = #{newPwd}
+        where id = #{id}
+    </update>
+
+
+    <!-- 查询所有用户 -->
+    <select id="selectAllUsers" resultMap="BaseResultMap">
+        select id,
+               login_act,
+               name,
+               login_pwd,
+               email,
+               expire_time,
+               lock_state,
+               deptno,
+               allow_ips,
+               createTime,
+               create_by,
+               edit_time,
+               edit_by
+        from tbl_user
+        where lock_state = 1
+    </select>
+
+    <!-- 根据账号密码查询用户 -->
+    <select id="selectUserByLoginActAndPwd" parameterType="map" resultMap="BaseResultMap">
+        select id,
+               login_act,
+               name,
+               login_pwd,
+               email,
+               expire_time,
+               lock_state,
+               deptno,
+               allow_ips,
+               createTime,
+               create_by,
+               edit_time,
+               edit_by
+        from tbl_user
+        where login_act = #{loginAct}
+          and login_pwd = #{loginPwd}
+    </select>
+
+    <!-- 查询旧密码 -->
+    <select id="findOldPwd" resultType="java.lang.String">
+        select login_pwd
+        from tbl_user
+        where id = #{id}
+    </select>
+</mapper>

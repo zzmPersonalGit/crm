@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zzm.crm.workbench.mapper.ContactsActivityRelationMapper">
+    <resultMap id="BaseResultMap" type="com.zzm.crm.workbench.pojo.ContactsActivityRelation">
+        <id column="id" jdbcType="CHAR" property="id"/>
+        <result column="contacts_id" jdbcType="CHAR" property="contactsId"/>
+        <result column="activity_id" jdbcType="CHAR" property="activityId"/>
+    </resultMap>
+
+    <!-- 根据联系人的ID删除和市场活动的关联关系 -->
+    <delete id="deleteByClueId">
+        delete
+        from tbl_contacts_activity_relation
+        where contacts_id = #{id,jdbcType=CHAR}
+    </delete>
+
+    <!-- 解除市场活动和联系人的关联关系 -->
+    <delete id="deleteRelation">
+        delete
+        from tbl_contacts_activity_relation
+        where contacts_id = #{contactsId,jdbcType=CHAR}
+          and activity_id = #{activityId,jdbcType=CHAR}
+    </delete>
+
+    <!-- 根据联系人的ID删除所有关联的市场活动 -->
+    <delete id="deleteByContactsId">
+        delete
+        from tbl_contacts_activity_relation
+        where contacts_id = #{contactsId,jdbcType=CHAR}
+    </delete>
+
+    <!-- 批量插入联系人和市场活动的关联关系 -->
+    <insert id="insertOriginData" parameterType="com.zzm.crm.workbench.pojo.ContactsActivityRelation">
+        insert into tbl_contacts_activity_relation (id, contacts_id, activity_id)
+        values
+        <foreach collection="list" item="obj" separator=",">
+            (#{obj.id,jdbcType=CHAR}, #{obj.contactsId,jdbcType=CHAR}, #{obj.activityId,jdbcType=CHAR})
+        </foreach>
+    </insert>
+
+    <!-- 保存联系人和市场活动的关联关系 -->
+    <insert id="saveContactsActivityRelationByIds">
+        insert into tbl_contacts_activity_relation (id, contacts_id, activity_id)
+        values
+        <foreach collection="list" item="ids" separator=",">
+            (#{ids.id,jdbcType=CHAR}, #{ids.contactsId,jdbcType=CHAR}, #{ids.activityId,jdbcType=CHAR})
+        </foreach>
+    </insert>
+</mapper>
